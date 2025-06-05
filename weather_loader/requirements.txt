@@ -1,0 +1,5 @@
+requests
+pymongo
+schedule
+python-dotenv
+tenacity  # para retry / fallback
