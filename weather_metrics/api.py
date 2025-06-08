@@ -1,6 +1,28 @@
+import time
+from functools import wraps
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from repository import get_latest, avg_since
+
+def ttl_cache(seconds: int):
+    cache = {}
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            key = (args, tuple(sorted(kwargs.items())))
+            entry = cache.get(key)
+            if entry:
+                result, ts = entry
+                if time.time() - ts < seconds:
+                    print(f"CACHE HIT {func.__name__} args={key}")
+                    return result
+            # si llegamos acá, es cache miss
+            print(f"CACHE MISS {func.__name__} args={key}")
+            result = func(*args, **kwargs)
+            cache[key] = (result, time.time())
+            return result
+        return wrapper
+    return decorator
 
 app = FastAPI(
     title="Weather Metrics API",
@@ -40,6 +62,7 @@ def current():
     summary="Promedio de temperatura últimas 24 horas",
     description="Devuelve la temperatura media de las mediciones del último día."
 )
+@ttl_cache(seconds=60)  # cache de 1 minuto
 def avg_day():
     avg = avg_since(24 * 3600)
     if avg is None:
@@ -52,6 +75,7 @@ def avg_day():
     summary="Promedio de temperatura última semana",
     description="Devuelve la temperatura media de las mediciones de los últimos 7 días."
 )
+@ttl_cache(seconds=300)  # cache de 5 minutos
 def avg_week():
     avg = avg_since(7 * 24 * 3600)
     if avg is None:
