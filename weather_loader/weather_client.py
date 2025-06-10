@@ -1,11 +1,14 @@
 import requests
-from tenacity import retry, wait_fixed, stop_after_attempt
+from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_attempt
 from config import CONFIG
 from logger import get_logger
+import pybreaker
 
 logger = get_logger("WeatherClient")
+circuit_breaker = pybreaker.CircuitBreaker(fail_max=3, reset_timeout=60)
 
-@retry(wait=wait_fixed(5), stop=stop_after_attempt(3))
+@circuit_breaker
+@retry(wait=wait_fixed(5), stop=stop_after_attempt(3),retry=retry_if_exception_type(Exception))
 def fetch_weather():
     city = CONFIG["city"]
     api_key = CONFIG["api_key"]
