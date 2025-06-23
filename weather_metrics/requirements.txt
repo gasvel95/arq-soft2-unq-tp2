@@ -3,3 +3,6 @@ uvicorn
 pymongo
 python-dotenv
 prometheus-client
+fastapi-websocket-rpc
+pybreaker
+tenacity

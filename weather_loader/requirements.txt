@@ -4,3 +4,5 @@ schedule
 python-dotenv
 tenacity  # para retry / fallback
 pybreaker
+fastapi-websocket-rpc
+apscheduler
