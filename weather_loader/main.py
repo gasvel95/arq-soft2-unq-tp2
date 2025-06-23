@@ -1,5 +1,3 @@
-from multiprocessing import Process
-from scheduler import start
 from api import app
 import uvicorn
 

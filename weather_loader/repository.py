@@ -1,9 +1,10 @@
+import logging
 import time
 from pymongo import MongoClient
 from config import CONFIG
 from logger import get_logger
 
-logger = get_logger("Repository")
+logger = get_logger("Repository").setLevel(logging.WARN)
 
 client = MongoClient(CONFIG["mongo_uri"])
 db = client[CONFIG["mongo_db"]]

@@ -1,13 +1,8 @@
 # weather_metrics/api.py
 
-import time
 import logging
-from functools import wraps
 
-from fastapi import FastAPI, HTTPException, Response
-from pydantic import BaseModel
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import FastAPI
 from repository import get_latest, avg_since
 from fastapi_websocket_rpc import RpcMethodsBase, WebsocketRPCEndpoint
 from contextlib import asynccontextmanager
@@ -19,7 +14,7 @@ from logger import get_logger
 
 logging.basicConfig(
     format="[%(asctime)s] %(levelname)s %(name)s: %(message)s",
-    level=logging.DEBUG
+    level=logging.WARN
 )
 logger = get_logger("Scheduler")
 

@@ -37,13 +37,13 @@ logging.basicConfig(
 # ---------------------------------------------------
 @circuit_breaker
 def rpc_call_current():
-    return asyncio.run(get_current(f"ws://localhost:{PORT}/ws"))
+    return asyncio.run(get_current(f"ws://weather_loader:{PORT}/ws"))
 @circuit_breaker
 def rpc_call_avg_day():
-    return asyncio.run(avg_day(f"ws://localhost:{PORT}/ws"))
+    return asyncio.run(get_avg_day(f"ws://weather_loader:{PORT}/ws"))
 @circuit_breaker
 def rpc_call_avg_week():
-    return asyncio.run(avg_week(f"ws://localhost:{PORT}/ws"))
+    return asyncio.run(get_avg_week(f"ws://weather_loader:{PORT}/ws"))
 
 # ---------------------------------------------------
 # METODOS RPC CLIENT
@@ -51,19 +51,16 @@ def rpc_call_avg_week():
 async def get_current(uri):
     async with WebSocketRpcClient(uri,RpcMethodsBase(),RETRY_CONFIG) as client:
         response = await client.other.getCurrent()
-        response.raise_for_status()
         return response.result
     
 async def get_avg_day(uri):
     async with WebSocketRpcClient(uri,RpcMethodsBase(),RETRY_CONFIG) as client:
         response = await client.other.avgDay()
-        response.raise_for_status()
         return response.result
     
 async def get_avg_week(uri):
     async with WebSocketRpcClient(uri,RpcMethodsBase(),RETRY_CONFIG) as client:
         response = await client.other.avgWeek()
-        response.raise_for_status()
         return response.result
     
 # ---------------------------------------------------
