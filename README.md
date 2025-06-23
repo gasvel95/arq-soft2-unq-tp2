@@ -63,9 +63,16 @@ Contraseña: admin
 
 #### Para ejecutar un ejemplo:
 
-1- Tener corriendo el modulo weather_loader
-2- Tener corriendo el modulo weather_metrics
-
+1- Tener corriendo el modulo weather_loader. 
+En la carpeta  weather_loader ejecutar
+```bash
+python main.py
+```
+2- Tener corriendo el modulo weather_metrics. 
+En la carpeta  weather_metrics ejecutar
+```bash
+python main.py
+```
 3- Ir a Grafana: http://localhost:3000
 
 - Ir a Dashboards → Import
@@ -73,3 +80,12 @@ Contraseña: admin
 - Subir el archivo: examples/wheather-xxxxxxxx.json
 
 - Asignar la fuente de datos: Prometheus
+
+### Test de carga
+Se implementaron tests de carga con Locust sobre los 3 endpoints disponibles. Para su ejecución, en la carpeta raíz ingresar el siguiente comando:
+En la carpeta  weather_loader ejecutar
+```bash
+locust -f locust_test.py
+```
+Se abrirá el browser predeterminado. Ahí puede seleccionar la cantidad maxima de usuarios concurrentes , la cantidad de usuarios por segundo que se van sumando y el host (en el caso de correrlo de manera local http://localhost:8000).
+Los resultados de las pruebas realizadas se encuentran en la carpeta **reports_locust**
