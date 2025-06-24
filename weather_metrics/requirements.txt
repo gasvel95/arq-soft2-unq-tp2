@@ -3,3 +3,5 @@ uvicorn
 pymongo
 python-dotenv
 prometheus-client
+tenacity
+psutil
