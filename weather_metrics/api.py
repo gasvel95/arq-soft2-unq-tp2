@@ -1,15 +1,28 @@
 # weather_metrics/api.py
 
+import json
 import time
 import logging
 from functools import wraps
 
 from fastapi import FastAPI, HTTPException, Response
+import pybreaker
 from pydantic import BaseModel
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
+import asyncio
+from tenacity import RetryError, retry_if_exception_type, wait_fixed, stop_after_attempt
 
-from repository import get_latest, avg_since
+
+PORT = 8001
+
+circuit_breaker = pybreaker.CircuitBreaker(fail_max=3, reset_timeout=60)
+
+
+RETRY_CONFIG = {
+    'wait':wait_fixed(5), 'stop':stop_after_attempt(3),'retry':retry_if_exception_type(Exception)
+}
 
 # ---------------------------------------------------
 # CONFIGURACIÓN DE LOGGING
@@ -19,6 +32,37 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
+# ---------------------------------------------------
+# AISLAMOS EN METODOS PARA IMPLEMENTAR PYBREAKER
+# ---------------------------------------------------
+@circuit_breaker
+def rpc_call_current():
+    return asyncio.run(get_current(f"ws://weather_loader:{PORT}/ws"))
+@circuit_breaker
+def rpc_call_avg_day():
+    return asyncio.run(get_avg_day(f"ws://weather_loader:{PORT}/ws"))
+@circuit_breaker
+def rpc_call_avg_week():
+    return asyncio.run(get_avg_week(f"ws://weather_loader:{PORT}/ws"))
+
+# ---------------------------------------------------
+# METODOS RPC CLIENT
+# ---------------------------------------------------
+async def get_current(uri):
+    async with WebSocketRpcClient(uri,RpcMethodsBase(),RETRY_CONFIG) as client:
+        response = await client.other.getCurrent()
+        return response.result
+    
+async def get_avg_day(uri):
+    async with WebSocketRpcClient(uri,RpcMethodsBase(),RETRY_CONFIG) as client:
+        response = await client.other.avgDay()
+        return response.result
+    
+async def get_avg_week(uri):
+    async with WebSocketRpcClient(uri,RpcMethodsBase(),RETRY_CONFIG) as client:
+        response = await client.other.avgWeek()
+        return response.result
+    
 # ---------------------------------------------------
 # DECORADOR DE CACHE EN MEMORIA CON TTL
 # ---------------------------------------------------
@@ -119,15 +163,20 @@ app.add_middleware(MetricsMiddleware)
     description="Devuelve la última medición de temperatura, humedad y presión."
 )
 def current():
-    doc = get_latest()
-    if not doc:
-        raise HTTPException(status_code=404, detail="No hay datos de clima disponibles aún")
-    return {
-        "temperature": doc["temperature"],
-        "humidity": doc["humidity"],
-        "pressure": doc["pressure"],
-        "timestamp": doc["timestamp"],
-    }
+    parsed_response = None
+    try:
+        doc = rpc_call_current()
+        if not doc:
+            raise HTTPException(status_code=404, detail="No hay datos de clima disponibles aún")
+        json_acceptable_string = doc.replace("'", "\"")
+        parsed_response = json.loads(json_acceptable_string)
+    except pybreaker.CircuitBreakerError:
+        raise HTTPException(status_code=503, detail="Servicio temporalmente fuera de servicio")
+    except RetryError:
+        raise HTTPException(status_code=502, detail="Servicio no responde. Vuelva a intentar.")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Error de conexión: {str(e)}")
+    return parsed_response
 
 @app.get(
     "/weather/average/day",
@@ -137,9 +186,17 @@ def current():
 )
 @ttl_cache(seconds=60)
 def avg_day():
-    avg = avg_since(24 * 3600)
-    if avg is None:
-        raise HTTPException(status_code=404, detail="No hay datos de las últimas 24 horas")
+    avg = None
+    try:
+        avg = rpc_call_avg_day()
+        if avg is None:
+            raise HTTPException(status_code=404, detail="No hay datos de las últimas 24 horas")
+    except pybreaker.CircuitBreakerError:
+        raise HTTPException(status_code=503, detail="Servicio temporalmente fuera de servicio")
+    except RetryError:
+        raise HTTPException(status_code=502, detail="Servicio no responde. Vuelva a intentar.")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Error de conexión: {str(e)}")
     return {"average": avg}
 
 @app.get(
@@ -150,9 +207,17 @@ def avg_day():
 )
 @ttl_cache(seconds=300)
 def avg_week():
-    avg = avg_since(7 * 24 * 3600)
-    if avg is None:
-        raise HTTPException(status_code=404, detail="No hay datos de la última semana")
+    avg = None
+    try:
+        avg = rpc_call_avg_week()
+        if avg is None:
+            raise HTTPException(status_code=404, detail="No hay datos de la última semana")
+    except pybreaker.CircuitBreakerError:
+        raise HTTPException(status_code=503, detail="Servicio temporalmente fuera de servicio")
+    except RetryError:
+        raise HTTPException(status_code=502, detail="Servicio no responde. Vuelva a intentar.")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Error de conexión: {str(e)}")
     return {"average": avg}
 
 # ---------------------------------------------------
