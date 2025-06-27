@@ -8,8 +8,11 @@ from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.middleware.base import BaseHTTPMiddleware
-
+from hard_metrics.hardware import update_memory_metrics, update_cpu_metrics, update_disk_metrics, update_cpu_temperature 
+from bussines_metrics import weather_average_day, weather_average_week, weather_current_temperature, weather_current_humidity, weather_current_pressure, weather_current_timestamp
 from repository import get_latest, avg_since
+from opensearchpy import OpenSearch
+from datetime import datetime
 
 # ---------------------------------------------------
 # CONFIGURACIÓN DE LOGGING
@@ -18,6 +21,49 @@ logging.basicConfig(
     format="[%(asctime)s] %(levelname)s %(name)s: %(message)s",
     level=logging.DEBUG
 )
+
+# Crear un cliente de OpenSearch
+client = OpenSearch(
+    hosts=["http://localhost:9200"],
+    http_auth=("admin", "admin"),  # Si es necesario
+    use_ssl=False,
+    verify_certs=False,
+)
+
+# Definir el nombre del índice en OpenSearch
+log_index = "weather_logs"
+
+# Función para enviar logs a OpenSearch
+def send_log_to_opensearch(log_message):
+    document = {
+        "timestamp": datetime.utcnow(),
+        "log_message": log_message,
+        "level": "INFO",  # Puedes cambiar el nivel de los logs según lo que necesites
+    }
+
+    response = client.index(
+        index=log_index,
+        body=document,
+        refresh=True  # Asegura que el documento esté disponible inmediatamente
+    )
+    print(f"Log enviado a OpenSearch: {response['result']}")
+
+# Función para hacer un log y enviarlo a OpenSearch
+def log_to_opensearch(log_message):
+    logging.info(log_message)
+    send_log_to_opensearch(log_message)
+
+# Buscar los logs en el índice
+response = client.search(
+    index=log_index,
+    body={
+        "query": {
+            "match_all": {}
+        }
+    }
+)
+print("Resultado de búsqueda:", response)
+
 
 # ---------------------------------------------------
 # DECORADOR DE CACHE EN MEMORIA CON TTL
@@ -83,28 +129,49 @@ REQUEST_LATENCY = Histogram(
     ['method', 'endpoint']
 )
 
+REQUEST_COUNT_ERROR = Counter(
+    'weather_api_request_count_failed',
+    'Contador de peticiones HTTP fallidas (errores 500 u otros)',
+    ['method', 'endpoint', 'http_status']
+)
+
 # ---------------------------------------------------
 # MIDDLEWARE PARA INSTRUMENTACIÓN
 # ---------------------------------------------------
 class MetricsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         start = time.time()
-        response = await call_next(request)
-        elapsed = time.time() - start
+        response = None 
+        try:
+            response = await call_next(request)
+            elapsed = time.time() - start
 
-        # Registrar latencia
-        REQUEST_LATENCY.labels(
-            method=request.method,
-            endpoint=request.url.path
-        ).observe(elapsed)
+            # Registrar latencia
+            REQUEST_LATENCY.labels(
+                method=request.method,
+                endpoint=request.url.path
+            ).observe(elapsed)
 
-        # Contar la petición
-        REQUEST_COUNT.labels(
-            method=request.method,
-            endpoint=request.url.path,
-            http_status=response.status_code
-        ).inc()
+            # Contar la petición
+            REQUEST_COUNT.labels(
+                method=request.method,
+                endpoint=request.url.path,
+                http_status=response.status_code
+            ).inc()
+        except Exception as e:
+            log_to_opensearch(f"ERROR -> {e}")
+            elapsed = time.time() - start
+            # Registrar latencia
+            REQUEST_LATENCY.labels(
+                method=request.method,
+                endpoint=request.url.path
+            ).observe(elapsed)
 
+            REQUEST_COUNT_ERROR.labels(                
+                method=request.method,
+                endpoint=request.url.path,
+                http_status= "500" if (response == None) else response.status_code
+                ).inc()
         return response
 
 app.add_middleware(MetricsMiddleware)
@@ -119,7 +186,12 @@ app.add_middleware(MetricsMiddleware)
     description="Devuelve la última medición de temperatura, humedad y presión."
 )
 def current():
+    log_to_opensearch(f"================ consulta current ==================")    
     doc = get_latest()
+    weather_current_temperature.set(doc["temperature"])
+    weather_current_humidity.set(doc["humidity"])
+    weather_current_pressure.set(doc["pressure"])
+    weather_current_timestamp.set(doc["timestamp"])
     if not doc:
         raise HTTPException(status_code=404, detail="No hay datos de clima disponibles aún")
     return {
@@ -137,7 +209,9 @@ def current():
 )
 @ttl_cache(seconds=60)
 def avg_day():
+    log_to_opensearch(f"================ consulta avg_day ==================")
     avg = avg_since(24 * 3600)
+    weather_average_day.set(avg)
     if avg is None:
         raise HTTPException(status_code=404, detail="No hay datos de las últimas 24 horas")
     return {"average": avg}
@@ -150,10 +224,13 @@ def avg_day():
 )
 @ttl_cache(seconds=300)
 def avg_week():
+    log_to_opensearch(f"================ consulta avg_week ==================")
     avg = avg_since(7 * 24 * 3600)
+    weather_average_week.set(avg)
     if avg is None:
         raise HTTPException(status_code=404, detail="No hay datos de la última semana")
     return {"average": avg}
+
 
 # ---------------------------------------------------
 # ENDPOINT PARA PROMETHEUS
@@ -163,5 +240,10 @@ def metrics():
     """
     Punto de exposición para Prometheus.
     """
+    log_to_opensearch(f"================ consulta /metrics ==================")
+    update_memory_metrics()
+    update_disk_metrics()
+    update_cpu_metrics()
+    update_cpu_temperature()
     data = generate_latest()
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)
