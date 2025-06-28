@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.middleware.base import BaseHTTPMiddleware
 from hard_metrics.hardware import update_memory_metrics, update_cpu_metrics, update_disk_metrics, update_cpu_temperature 
-from .business_metrics.bussines_metrics import weather_average_day, weather_average_week, weather_current_temperature, weather_current_humidity, weather_current_pressure, weather_current_timestamp
+from business_metrics.bussines_metrics import weather_average_day, weather_average_week, weather_current_temperature, weather_current_humidity, weather_current_pressure, weather_current_timestamp
 from repository import get_latest, avg_since
 from logging_ag import log_to_opensearch
 
