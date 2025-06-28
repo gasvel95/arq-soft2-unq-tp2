@@ -5,4 +5,4 @@ python-dotenv
 prometheus-client
 tenacity
 psutil
-elasticsearch
+opensearchpy

@@ -10,4 +10,5 @@ CONFIG = {
     "mongo_collection": os.getenv("MONGO_COLLECTION", "measurements"),
     "city": os.getenv("CITY", "Buenos Aires"),
     "interval_minutes": 30,
+    "open_search_uri": os.getenv("OPEN_SEARCH_URI")
 }
