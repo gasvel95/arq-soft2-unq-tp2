@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime,timedelta
 from fastapi import FastAPI
+import pytz
 from repository import get_latest, avg_since
 from fastapi_websocket_rpc import RpcMethodsBase, WebsocketRPCEndpoint
 from contextlib import asynccontextmanager
@@ -37,13 +38,16 @@ app = FastAPI(lifespan=lifespan)
 class WeatherServer(RpcMethodsBase):
     async def getCurrent(self):
         latest = get_latest()
+        gmt_timezone = pytz.timezone("America/Buenos_Aires")
+
         if datetime.fromtimestamp(latest['timestamp']) < (datetime.now() - timedelta(minutes=10)):
             latest = fetch_weather()
+        weather_date= datetime.fromtimestamp(latest['timestamp'],gmt_timezone)
         return {
         "temperature": latest['temperature'],
         "humidity": latest['humidity'],
         "pressure": latest['pressure'],
-        "timestamp": latest['timestamp'] 
+        "datetime": weather_date.strftime("%Y-%m-%d %H:%M:%S")
     }
     
     async def avgDay(self):

@@ -1,10 +1,12 @@
 # weather_metrics/api.py
 
+from datetime import datetime
 import json
 import time
 import logging
 from functools import wraps
-
+import pytz
+import requests
 from fastapi import FastAPI, HTTPException, Response
 import pybreaker
 from pydantic import BaseModel
@@ -14,14 +16,16 @@ from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
 import asyncio
 from tenacity import RetryError, retry_if_exception_type, wait_fixed, stop_after_attempt
 
+from config import CONFIG
+
 
 PORT = 8001
 
-circuit_breaker = pybreaker.CircuitBreaker(fail_max=3, reset_timeout=60)
+circuit_breaker = pybreaker.CircuitBreaker(fail_max=2, reset_timeout=60)
 
 
 RETRY_CONFIG = {
-    'wait':wait_fixed(5), 'stop':stop_after_attempt(3),'retry':retry_if_exception_type(Exception)
+    'wait':wait_fixed(3), 'stop':stop_after_attempt(2),'retry':retry_if_exception_type(Exception)
 }
 
 # ---------------------------------------------------
@@ -108,7 +112,7 @@ class CurrentResponse(BaseModel):
     temperature: float
     humidity: int
     pressure: int
-    timestamp: float
+    datetime: str
 
 class AverageResponse(BaseModel):
     average: float
@@ -171,7 +175,22 @@ def current():
         json_acceptable_string = doc.replace("'", "\"")
         parsed_response = json.loads(json_acceptable_string)
     except pybreaker.CircuitBreakerError:
-        raise HTTPException(status_code=503, detail="Servicio temporalmente fuera de servicio")
+        city = CONFIG["city"]
+        api_key = CONFIG["weatherstack_key"]
+        gmt_timezone = pytz.timezone("America/Buenos_Aires")
+        url = f"http://api.weatherstack.com/current?query={city}&access_key={api_key}&units=m"
+        response = requests.get(url, timeout=10)
+        if(response.status_code == 200):
+            data = response.json()
+            weather_date = datetime.now().astimezone(gmt_timezone)
+            parsed_response = {
+                "temperature": data["current"]["temperature"],
+                "humidity": data["current"]["humidity"],
+                "pressure": data["current"]["pressure"],
+                "datetime": weather_date.strftime("%Y-%m-%d %H:%M:%S")
+            }
+        else:
+            raise HTTPException(status_code=503, detail="Servicio temporalmente fuera de servicio")
     except RetryError:
         raise HTTPException(status_code=502, detail="Servicio no responde. Vuelva a intentar.")
     except Exception as e:

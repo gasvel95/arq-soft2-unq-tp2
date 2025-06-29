@@ -10,4 +10,5 @@ CONFIG = {
     "mongo_collection": os.getenv("MONGO_COLLECTION", "measurements"),
     "city": os.getenv("CITY", "Buenos Aires"),
     "interval_minutes": 15,
+    "weatherstack_key": os.getenv("WEATHERSTACK_API_KEY")
 }

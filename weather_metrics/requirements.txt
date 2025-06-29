@@ -6,3 +6,5 @@ prometheus-client
 fastapi-websocket-rpc
 pybreaker
 tenacity
+requests
+pytz
