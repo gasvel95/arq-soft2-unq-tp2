@@ -4,7 +4,7 @@ from pymongo import MongoClient
 from config import CONFIG
 from logger import get_logger
 
-logger = get_logger("Repository").setLevel(logging.WARN)
+logger = get_logger("Repository")
 
 client = MongoClient(CONFIG["mongo_uri"])
 db = client[CONFIG["mongo_db"]]
