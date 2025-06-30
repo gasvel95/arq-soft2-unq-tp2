@@ -41,7 +41,7 @@ def send_log_to_opensearch(log_message, level):
 
 ## level: INFO | ERROR
 def log_to_opensearch(log_message, level):
-    log_message_to_send = f"METRIC - {log_message}"  
+    log_message_to_send = f"LOADER - {log_message}"  
     if level == "INFO":
         logging.info(log_message_to_send)
     else: 

@@ -45,12 +45,18 @@ services:
       - discovery.seed_hosts=opensearch
       - cluster.initial_cluster_manager_nodes=opensearch
       - bootstrap.memory_lock=true
-      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
       - OPENSEARCH_SECURITY_DISABLED=true
       - plugins.security.ssl.http.enabled=false
       - plugins.security.audit.config.enable_transport=true
       - plugins.security.allow_unsafe_democertificates=true
-      - plugins.security.allow_default_init_securityindex=true      
+      - plugins.security.allow_default_init_securityindex=true
+      - OPENSEARCH_ALERTING_ENABLED=true   
+      - OPENSEARCH_ALERTING_NOTIFICATION_SLACK_URL=https://hooks.slack.com/services/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
+      - OPENSEARCH_ALERTING_NOTIFICATION_SLACK_CHANNEL=#todo-alerting-arq2
+    dns:
+      - 8.8.8.8  
+      - 1.1.1.1        
     ulimits:
       memlock:
         soft: -1

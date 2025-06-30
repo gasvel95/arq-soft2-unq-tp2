@@ -9,5 +9,7 @@ CONFIG = {
     "mongo_db": os.getenv("MONGO_DB", "weather"),
     "mongo_collection": os.getenv("MONGO_COLLECTION", "measurements"),
     "city": os.getenv("CITY", "Buenos Aires"),
-    "interval_minutes": 30,
+    "interval_minutes": 2,
+    "open_search_uri": os.getenv("OPEN_SEARCH_URI")
+
 }

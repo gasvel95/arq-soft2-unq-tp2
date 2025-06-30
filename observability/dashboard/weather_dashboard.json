@@ -601,7 +601,7 @@
           "useBackend": false
         }
       ],
-      "title": "Memoria Libre",
+      "title": "% de Uso de Memoria",
       "type": "stat"
     },
     {

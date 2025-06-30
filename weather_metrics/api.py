@@ -191,7 +191,7 @@ def metrics():
     """
     Punto de exposición para Prometheus.
     """
-    log_to_opensearch(f"================ consulta /metrics ==================",  "INFO")
+    log_to_opensearch(f"================ consulta metrics ==================",  "INFO")
     update_memory_metrics()
     update_disk_metrics()
     update_cpu_metrics()
