@@ -1,0 +1,12 @@
+# Deshabilitar el plugin de seguridad
+plugins.security.disabled: true
+
+# Deshabilitar SSL para el transporte entre nodos y HTTP
+plugins.security.ssl.transport.enabled: false
+plugins.security.ssl.http.enabled: false
+
+# Configurar OpenSearch para que escuche en todas las interfaces de red
+network.host: 0.0.0.0
+
+# Configuraciones adicionales de OpenSearch (ajustar según sea necesario)
+discovery.type: single-node

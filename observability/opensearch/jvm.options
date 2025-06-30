@@ -1,0 +1,9 @@
+-Xms2g
+-Xmx2g
+-Dopensearch.systemd.service=true
+-Dfile.encoding=UTF-8
+-XX:+UseG1GC
+-XX:MaxDirectMemorySize=2g
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/var/lib/opensearch
+-Dlog4j2.formatMsgNoLookups=true

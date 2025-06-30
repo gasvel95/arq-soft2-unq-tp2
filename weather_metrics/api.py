@@ -12,6 +12,10 @@ import pybreaker
 from pydantic import BaseModel
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.middleware.base import BaseHTTPMiddleware
+from hard_metrics.hardware import update_memory_metrics, update_cpu_metrics, update_disk_metrics, update_cpu_temperature 
+from business_metrics.bussines_metrics import weather_average_day, weather_average_week, weather_current_temperature, weather_current_humidity, weather_current_pressure, weather_current_timestamp
+from repository import get_latest, avg_since
+from logging_ag import log_to_opensearch
 from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
 import asyncio
 from tenacity import RetryError, retry_if_exception_type, wait_fixed, stop_after_attempt
@@ -131,28 +135,49 @@ REQUEST_LATENCY = Histogram(
     ['method', 'endpoint']
 )
 
+REQUEST_COUNT_ERROR = Counter(
+    'weather_api_request_count_failed',
+    'Contador de peticiones HTTP fallidas (errores 500 u otros)',
+    ['method', 'endpoint', 'http_status']
+)
+
 # ---------------------------------------------------
 # MIDDLEWARE PARA INSTRUMENTACIÓN
 # ---------------------------------------------------
 class MetricsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         start = time.time()
-        response = await call_next(request)
-        elapsed = time.time() - start
+        response = None 
+        try:
+            response = await call_next(request)
+            elapsed = time.time() - start
 
-        # Registrar latencia
-        REQUEST_LATENCY.labels(
-            method=request.method,
-            endpoint=request.url.path
-        ).observe(elapsed)
+            # Registrar latencia
+            REQUEST_LATENCY.labels(
+                method=request.method,
+                endpoint=request.url.path
+            ).observe(elapsed)
 
-        # Contar la petición
-        REQUEST_COUNT.labels(
-            method=request.method,
-            endpoint=request.url.path,
-            http_status=response.status_code
-        ).inc()
+            # Contar la petición
+            REQUEST_COUNT.labels(
+                method=request.method,
+                endpoint=request.url.path,
+                http_status=response.status_code
+            ).inc()
+        except Exception as e:
+            log_to_opensearch(f"ERROR -> {e}",  "ERROR")
+            elapsed = time.time() - start
+            # Registrar latencia
+            REQUEST_LATENCY.labels(
+                method=request.method,
+                endpoint=request.url.path
+            ).observe(elapsed)
 
+            REQUEST_COUNT_ERROR.labels(                
+                method=request.method,
+                endpoint=request.url.path,
+                http_status= "500" if (response == None) else response.status_code
+                ).inc()
         return response
 
 app.add_middleware(MetricsMiddleware)
@@ -167,10 +192,12 @@ app.add_middleware(MetricsMiddleware)
     description="Devuelve la última medición de temperatura, humedad y presión."
 )
 def current():
+    log_to_opensearch(f"================ consulta current ==================",  "INFO")    
     parsed_response = None
     try:
         doc = rpc_call_current()
         if not doc:
+           log_to_opensearch(f"404  - No hay datos de clima disponibles aún",  "ERROR")                   
             raise HTTPException(status_code=404, detail="No hay datos de clima disponibles aún")
         json_acceptable_string = doc.replace("'", "\"")
         parsed_response = json.loads(json_acceptable_string)
@@ -197,6 +224,7 @@ def current():
         raise HTTPException(status_code=502, detail=f"Error de conexión: {str(e)}")
     return parsed_response
 
+
 @app.get(
     "/weather/average/day",
     response_model=AverageResponse,
@@ -205,10 +233,12 @@ def current():
 )
 @ttl_cache(seconds=60)
 def avg_day():
+    log_to_opensearch(f"================ consulta avg_day ==================",  "INFO")
     avg = None
     try:
         avg = rpc_call_avg_day()
         if avg is None:
+            log_to_opensearch(f"404  - No hay datos de las últimas 24 horas",  "ERROR")                              
             raise HTTPException(status_code=404, detail="No hay datos de las últimas 24 horas")
     except pybreaker.CircuitBreakerError:
         raise HTTPException(status_code=503, detail="Servicio temporalmente fuera de servicio")
@@ -226,11 +256,15 @@ def avg_day():
 )
 @ttl_cache(seconds=300)
 def avg_week():
+
+    log_to_opensearch(f"================ consulta avg_week ==================",  "INFO")
     avg = None
     try:
         avg = rpc_call_avg_week()
         if avg is None:
             raise HTTPException(status_code=404, detail="No hay datos de la última semana")
+            log_to_opensearch(f"404  - No hay datos de la última semana",  "ERROR")                            
+            
     except pybreaker.CircuitBreakerError:
         raise HTTPException(status_code=503, detail="Servicio temporalmente fuera de servicio")
     except RetryError:
@@ -238,6 +272,7 @@ def avg_week():
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Error de conexión: {str(e)}")
     return {"average": avg}
+
 
 # ---------------------------------------------------
 # ENDPOINT PARA PROMETHEUS
@@ -247,5 +282,10 @@ def metrics():
     """
     Punto de exposición para Prometheus.
     """
+    log_to_opensearch(f"================ consulta metrics ==================",  "INFO")
+    update_memory_metrics()
+    update_disk_metrics()
+    update_cpu_metrics()
+    update_cpu_temperature()
     data = generate_latest()
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)

@@ -6,8 +6,9 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
+      - "--storage.tsdb.retention.time=30d"
       - "--config.file=/etc/prometheus/prometheus.yml"
     networks:
       - monitoring
@@ -29,9 +30,67 @@ services:
       - monitoring
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./dashboard:/etc/grafana/provisioning/dashboards
+
+  opensearch:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch
+    environment:
+      - OPENSEARCH_SECURITY_ENABLED=false
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Mercado2255$
+      - OPENSEARCH_INITIAL_ADMIN_USER=admin
+      - plugins.security.disabled=true
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch
+      - discovery.seed_hosts=opensearch
+      - cluster.initial_cluster_manager_nodes=opensearch
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - OPENSEARCH_SECURITY_DISABLED=true
+      - plugins.security.ssl.http.enabled=false
+      - plugins.security.audit.config.enable_transport=true
+      - plugins.security.allow_unsafe_democertificates=true
+      - plugins.security.allow_default_init_securityindex=true
+      - OPENSEARCH_ALERTING_ENABLED=true   
+      - OPENSEARCH_ALERTING_NOTIFICATION_SLACK_URL=https://hooks.slack.com/services/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
+      - OPENSEARCH_ALERTING_NOTIFICATION_SLACK_CHANNEL=#todo-alerting-arq2
+    dns:
+      - 8.8.8.8  
+      - 1.1.1.1        
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+         
+  opensearch_dashboards:
+    image: opensearchproject/opensearch-dashboards:3.1.0 
+    container_name: opensearch_dashboards
+    environment:
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    ports:
+      - "5601:5601"
+    networks:
+      - monitoring
+    depends_on:
+      - opensearch
 
 networks:
-  monitoring:
-
+ monitoring:
+    driver: bridge
+    
 volumes:
   grafana-data:
+  es_data:
+  opensearch-data:

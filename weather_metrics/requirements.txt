@@ -3,6 +3,8 @@ uvicorn
 pymongo
 python-dotenv
 prometheus-client
+psutil
+opensearch-py
 fastapi-websocket-rpc
 pybreaker
 tenacity

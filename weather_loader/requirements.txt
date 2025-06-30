@@ -4,6 +4,7 @@ schedule
 python-dotenv
 tenacity  # para retry / fallback
 pybreaker
+opensearch-py
 fastapi-websocket-rpc
 apscheduler
 uvicorn
