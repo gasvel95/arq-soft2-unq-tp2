@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  weather_loader:
+    build: ./weather_loader
+    ports:
+      - "8001:8001"
+    env_file: .env
+    restart: unless-stopped
+
+  weather_metrics:
+    build: ./weather_metrics
+    ports:
+      - "8000:8000"
+    env_file: .env
+    restart: unless-stopped
+
+  locust:
+    build: ./locust
+    ports:
+      - "8089:8089"  # Web UI de Locust
+    depends_on:
+      - weather_metrics
+    command: >
+      locust -f locustfile.py --host=http://weather_metrics:8000

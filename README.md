@@ -46,12 +46,18 @@ docker compose version
 
 ###  Ejecución
 
+Sobre la raíz del proyecto
+```bash
+docker-compose up --build
+```
+
 Sobre la carpeta "observability" 
 ```bash
 docker compose up -d
 ```
 
-## Metricas - Accesos
+### Accesos
+Locust: http://localhost:8089
 
 Prometheus: http://localhost:9090
 
@@ -61,6 +67,46 @@ Usuario: admin
 
 Contraseña: admin
 
+
+
+
+#### Para ejecutar un ejemplo:
+
+1- Tener corriendo el modulo weather_loader
+2- Tener corriendo el modulo weather_metrics
+
+1. Tener corriendo los modulos principales
+2. Ir a Grafana: http://localhost:3000
+- Asignar la fuente de datos: Prometheus
+
+
+## NOTA: 
+    en caso de tener que resetear la password:
+
+Verificar container de docker
+
+```bash
+docker ps
+```
+
+Seleccionar el container de Gafana
+```bash
+CONTAINER ID   IMAGE                COMMAND                  CREATED       STATUS       PORTS                    NAMES
+f2e312a45b8d   grafana/grafana      "/run.sh"                12 days ago   Up 2 hours   0.0.0.0:3000->3000/tcp   observability-grafana-1
+d36a1dfdac7d   prom/prometheus      "/bin/prometheus --c…"   12 days ago   Up 2 hours   0.0.0.0:9090->9090/tcp   observability-prometheus-1
+b28b98a06e60   prom/node-exporter   "/bin/node_exporter"     12 days ago   Up 2 hours   0.0.0.0:9100->9100/tcp   observability-node_exporter-1
+```
+
+y ejecutar el siguiente comando con la nueva password elegida, en este caso "pepe":
+
+```bash
+docker exec -ti f2e312a45b8d grafana cli admin reset-admin-password pepe
+```
+
+
+### Test de carga
+Ingresar a http://localhost:8089. Ahí puede seleccionar la cantidad maxima de usuarios concurrentes , la cantidad de usuarios por segundo que se van sumando y el host (en el caso de correrlo de manera local http://localhost:8000).
+Los resultados de las pruebas realizadas se encuentran en la carpeta **reports_locust**
 
 Se genero un Dashboard Gafaga, con las diferentes metricas, con 3 tipos de metricas:
 
@@ -99,34 +145,6 @@ Se genero un Dashboard Gafaga, con las diferentes metricas, con 3 tipos de metri
     * % Error
     * % Ok
 
-
-#### Para ejecutar un ejemplo:
-
-1- Tener corriendo el modulo weather_loader
-2- Tener corriendo el modulo weather_metrics
-
-## NOTA: 
-    en caso de tener que resetear la password:
-
-Verificar container de docker
-
-```bash
-docker ps
-```
-
-Seleccionar el container de Gafana
-```bash
-CONTAINER ID   IMAGE                COMMAND                  CREATED       STATUS       PORTS                    NAMES
-f2e312a45b8d   grafana/grafana      "/run.sh"                12 days ago   Up 2 hours   0.0.0.0:3000->3000/tcp   observability-grafana-1
-d36a1dfdac7d   prom/prometheus      "/bin/prometheus --c…"   12 days ago   Up 2 hours   0.0.0.0:9090->9090/tcp   observability-prometheus-1
-b28b98a06e60   prom/node-exporter   "/bin/node_exporter"     12 days ago   Up 2 hours   0.0.0.0:9100->9100/tcp   observability-node_exporter-1
-```
-
-y ejecutar el siguiente comando con la nueva password elegida, en este caso "pepe":
-
-```bash
-docker exec -ti f2e312a45b8d grafana cli admin reset-admin-password pepe
-```
 
 
 ## Logs Aggregation -> OpenSearch
@@ -240,6 +258,7 @@ En la imagen ejemplo en el json: hits-> total -> value: 13 indica que se dieron 
 ![crear Monitor](/images/moni_5.png)
 
 16. Finalmente le damos a "Create"
+
 
 ![crear Monitor](/images/moni_6.png)
 
