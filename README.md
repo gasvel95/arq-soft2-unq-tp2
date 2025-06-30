@@ -46,6 +46,18 @@ docker compose version
 
 ###  Ejecución
 
+Previo a esto es necesario generar una red para que los contenedores corran sobre una misma red para esto ejecutar:
+
+
+
+Sobre la raíz del proyecto
+```bash
+docker network create monitoring
+
+```
+monitoring: red ya configurada en los archivos docker-compose.yaml
+
+
 Sobre la raíz del proyecto
 ```bash
 docker-compose up --build

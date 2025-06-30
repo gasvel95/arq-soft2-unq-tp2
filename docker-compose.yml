@@ -7,6 +7,8 @@ services:
       - "8001:8001"
     env_file: .env
     restart: unless-stopped
+    networks:
+      - monitoring
 
   weather_metrics:
     build: ./weather_metrics
@@ -14,6 +16,8 @@ services:
       - "8000:8000"
     env_file: .env
     restart: unless-stopped
+    networks:
+      - monitoring
 
   locust:
     build: ./locust
@@ -23,3 +27,10 @@ services:
       - weather_metrics
     command: >
       locust -f locustfile.py --host=http://weather_metrics:8000
+    networks:
+      - monitoring
+
+networks:
+ monitoring:
+    driver: bridge
+    external: true     

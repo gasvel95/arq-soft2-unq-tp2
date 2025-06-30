@@ -14,7 +14,6 @@ from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_
 from starlette.middleware.base import BaseHTTPMiddleware
 from hard_metrics.hardware import update_memory_metrics, update_cpu_metrics, update_disk_metrics, update_cpu_temperature 
 from business_metrics.bussines_metrics import weather_average_day, weather_average_week, weather_current_temperature, weather_current_humidity, weather_current_pressure, weather_current_timestamp
-from repository import get_latest, avg_since
 from logging_ag import log_to_opensearch
 from fastapi_websocket_rpc import RpcMethodsBase, WebSocketRpcClient
 import asyncio
@@ -198,7 +197,7 @@ def current():
         doc = rpc_call_current()
         if not doc:
            log_to_opensearch(f"404  - No hay datos de clima disponibles aún",  "ERROR")                   
-            raise HTTPException(status_code=404, detail="No hay datos de clima disponibles aún")
+           raise HTTPException(status_code=404, detail="No hay datos de clima disponibles aún")
         json_acceptable_string = doc.replace("'", "\"")
         parsed_response = json.loads(json_acceptable_string)
     except pybreaker.CircuitBreakerError:
