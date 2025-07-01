@@ -1,0 +1,176 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: grp-error-api
+      folder: Alerts-Api
+      interval: 1m
+      rules:
+        - uid: aeqnbz22ic268e
+          title: Error Weather Logs - AVG Day
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: aeohsfsxhzm68b
+              model:
+                disableTextWrap: false
+                editorMode: builder
+                expr: weather_api_request_count_total{endpoint="/weather/average/day", http_status!="200"}
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 4m
+          keepFiringFor: 4m
+          annotations:
+            description: Error en la API  /weather/average/day.  Verificar
+            summary: Error en la API  /weather/average/day
+          isPaused: false
+          notification_settings:
+            receiver: Slack - CH
+        - uid: eeqne2xu483k0f
+          title: Error  Weather Logs - AVG Week
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: aeohsfsxhzm68b
+              model:
+                disableTextWrap: false
+                editorMode: builder
+                expr: weather_api_request_count_total{endpoint="/weather/average/week", http_status!="200"}
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 3m
+          keepFiringFor: 3m
+          annotations:
+            summary: Error en el endpoint weather/average/week.
+          isPaused: false
+          notification_settings:
+            receiver: Slack - CH
+        - uid: aeqnefyorm8lca
+          title: 'Error Weather Logs - Current '
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: aeohsfsxhzm68b
+              model:
+                disableTextWrap: false
+                editorMode: builder
+                expr: weather_api_request_count_total{endpoint="/weather/current", http_status!="200"}
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 3m
+          keepFiringFor: 3m
+          annotations:
+            summary: Error en el API /weather/current
+          isPaused: false
+          notification_settings:
+            receiver: Slack - CH
