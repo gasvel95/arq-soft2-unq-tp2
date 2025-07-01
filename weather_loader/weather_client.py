@@ -33,4 +33,5 @@ def fetch_weather():
             "pressure": data["main"]["pressure"]
         }
     except Exception as e:
+        log_to_opensearch("errror de conexion {e}", "ERROR")
         raise HTTPException(status_code=502, detail=f"Error de conexión: {str(e)}")

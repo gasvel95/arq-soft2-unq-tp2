@@ -39,7 +39,7 @@ def send_log_to_opensearch(log_message, level):
     )
     print(f"Log enviado a OpenSearch: {response['result']}")
 
-## level: INFO | ERROR
+## level: INFO | ERROR | WARNING
 def log_to_opensearch(log_message, level):
     log_message_to_send = f"LOADER - {log_message}"  
     if level == "INFO":

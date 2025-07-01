@@ -808,7 +808,7 @@
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "interval": "",
-          "legendFormat": "OK",
+          "legendFormat": "{{http_status}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -820,12 +820,12 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "weather_api_request_count_failed_total{endpoint=\"/weather/average/day\", http_status=\"500\"}",
+          "expr": "weather_api_request_count_total{endpoint=\"/weather/average/day\", http_status!=\"200\"}",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "Error",
+          "legendFormat": "{{http_status}}",
           "range": true,
           "refId": "B",
           "useBackend": false
@@ -895,7 +895,7 @@
           "expr": "weather_api_request_count_total{endpoint=\"/weather/current\", http_status=\"200\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "OK",
+          "legendFormat": "{{http_status}}",
           "range": true,
           "refId": "HTTP 200",
           "useBackend": false
@@ -907,12 +907,12 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "weather_api_request_count_failed_total{endpoint=\"/weather/current\", http_status=\"500\"}",
+          "expr": "weather_api_request_count_total{endpoint=\"/weather/current\", http_status!=\"200\"}",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "Error",
+          "legendFormat": "{{http_status}}",
           "range": true,
           "refId": "HTTP != 200",
           "useBackend": false
@@ -982,7 +982,7 @@
           "expr": "weather_api_request_count_total{endpoint=\"/weather/average/week\", http_status=\"200\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
-          "legendFormat": "OK",
+          "legendFormat": "{{http_status}}",
           "range": true,
           "refId": "HTTP 200",
           "useBackend": false
@@ -994,14 +994,14 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "weather_api_request_count_failed_total{endpoint=\"/weather/average/week\", http_status=\"500\"}",
+          "expr": "weather_api_request_count_total{endpoint=\"/weather/average/week\", http_status!=\"200\"}",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "Error",
+          "legendFormat": "{{http_status}}",
           "range": true,
-          "refId": "HTTP != 200",
+          "refId": "A",
           "useBackend": false
         }
       ],
@@ -1297,5 +1297,5 @@
   "timezone": "",
   "title": "El Tiempo Dashboard",
   "uid": "2e573581-2410-434b-83bc-7a61afbfa429",
-  "version": 52
+  "version": 55
 }

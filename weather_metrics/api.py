@@ -164,6 +164,12 @@ class MetricsMiddleware(BaseHTTPMiddleware):
                 endpoint=request.url.path,
                 http_status=response.status_code
             ).inc()
+            if(response.status_code != 200 or response.status_code != 202):
+                REQUEST_COUNT_ERROR.labels(                
+                method=request.method,
+                endpoint=request.url.path,
+                http_status= "500" if (response == None) else response.status_code
+                ).inc()            
         except Exception as e:
             log_to_opensearch(f"ERROR -> {e}",  "ERROR")
             elapsed = time.time() - start

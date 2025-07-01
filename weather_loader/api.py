@@ -11,6 +11,7 @@ from repository import save_weather_data
 from config import CONFIG
 from logger import get_logger
 from weather_client import fetch_weather
+from logging_ag import log_to_opensearch
 
 logging.basicConfig(
     format="[%(asctime)s] %(levelname)s %(name)s: %(message)s",
@@ -24,6 +25,7 @@ def job():
         save_weather_data(data)
     except Exception as e:
         logger.error(f"Failed to load weather data: {e}")
+        log_to_opensearch(f"Failed to load weather data: {e}","ERROR")
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
