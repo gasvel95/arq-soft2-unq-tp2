@@ -200,6 +200,9 @@ def current():
            raise HTTPException(status_code=404, detail="No hay datos de clima disponibles aún")
         json_acceptable_string = doc.replace("'", "\"")
         parsed_response = json.loads(json_acceptable_string)
+        weather_current_temperature.set(parsed_response["temperature"])
+        weather_current_humidity.set(parsed_response["humidity"])
+        weather_current_pressure.set(parsed_response["pressure"])
     except pybreaker.CircuitBreakerError:
         city = CONFIG["city"]
         api_key = CONFIG["weatherstack_key"]
@@ -236,6 +239,7 @@ def avg_day():
     avg = None
     try:
         avg = rpc_call_avg_day()
+        weather_average_day.set(avg)
         if avg is None:
             log_to_opensearch(f"404  - No hay datos de las últimas 24 horas",  "ERROR")                              
             raise HTTPException(status_code=404, detail="No hay datos de las últimas 24 horas")
@@ -260,6 +264,7 @@ def avg_week():
     avg = None
     try:
         avg = rpc_call_avg_week()
+        weather_average_week.set(avg)        
         if avg is None:
             raise HTTPException(status_code=404, detail="No hay datos de la última semana")
             log_to_opensearch(f"404  - No hay datos de la última semana",  "ERROR")                            
