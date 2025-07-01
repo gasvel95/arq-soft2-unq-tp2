@@ -23,6 +23,7 @@ from config import CONFIG
 
 
 PORT = 8001
+HOST = "weather_loader"
 
 circuit_breaker = pybreaker.CircuitBreaker(fail_max=2, reset_timeout=60)
 
@@ -44,13 +45,13 @@ logging.basicConfig(
 # ---------------------------------------------------
 @circuit_breaker
 def rpc_call_current():
-    return asyncio.run(get_current(f"ws://weather_loader:{PORT}/ws"))
+    return asyncio.run(get_current(f"ws://{HOST}:{PORT}/ws"))
 @circuit_breaker
 def rpc_call_avg_day():
-    return asyncio.run(get_avg_day(f"ws://weather_loader:{PORT}/ws"))
+    return asyncio.run(get_avg_day(f"ws://{HOST}:{PORT}/ws"))
 @circuit_breaker
 def rpc_call_avg_week():
-    return asyncio.run(get_avg_week(f"ws://weather_loader:{PORT}/ws"))
+    return asyncio.run(get_avg_week(f"ws://{HOST}:{PORT}/ws"))
 
 # ---------------------------------------------------
 # METODOS RPC CLIENT
