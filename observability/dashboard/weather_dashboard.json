@@ -731,7 +731,7 @@
           "useBackend": false
         }
       ],
-      "title": "% de uso de Disco",
+      "title": "Bytes disponible de Disco",
       "type": "stat"
     },
     {
@@ -1016,9 +1016,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "continuous-GrYlRd"
-          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -1031,7 +1028,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
@@ -1043,18 +1041,11 @@
       },
       "id": 14,
       "options": {
-        "displayMode": "lcd",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1062,43 +1053,26 @@
           "fields": "",
           "values": false
         },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "12.0.1",
       "targets": [
         {
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "weather_api_request_latency_seconds_count{endpoint=\"/weather/average/day\"}",
+          "expr": "avg(rate(weather_api_request_latency_seconds_sum{endpoint=\"/weather/average/day\"}[24h]))",
           "fullMetaSearch": false,
-          "includeNullMetadata": true,
+          "includeNullMetadata": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A",
           "useBackend": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "aeohsfsxhzm68b"
-          },
-          "disableTextWrap": false,
-          "editorMode": "builder",
-          "expr": "weather_api_request_latency_seconds_sum{endpoint=\"/weather/average/day\"}",
-          "fullMetaSearch": false,
-          "hide": false,
-          "includeNullMetadata": true,
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "B",
-          "useBackend": false
         }
       ],
-      "title": "Latencia  /weather/average/day",
-      "type": "bargauge"
+      "title": "Latencia promedio [24 hs] /weather/average/day",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -1107,9 +1081,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "continuous-GrYlRd"
-          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -1122,7 +1093,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
@@ -1134,18 +1106,11 @@
       },
       "id": 15,
       "options": {
-        "displayMode": "lcd",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1153,43 +1118,26 @@
           "fields": "",
           "values": false
         },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "12.0.1",
       "targets": [
         {
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "weather_api_request_latency_seconds_count{endpoint=\"/weather/current\"}",
+          "expr": "avg(rate(weather_api_request_latency_seconds_sum{endpoint=\"/weather/current\"}[24h]))",
           "fullMetaSearch": false,
-          "includeNullMetadata": true,
+          "includeNullMetadata": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A",
           "useBackend": false
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "aeohsfsxhzm68b"
-          },
-          "disableTextWrap": false,
-          "editorMode": "builder",
-          "expr": "weather_api_request_latency_seconds_sum{endpoint=\"/weather/current\"}",
-          "fullMetaSearch": false,
-          "hide": false,
-          "includeNullMetadata": true,
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "B",
-          "useBackend": false
         }
       ],
-      "title": "Latencia  /weather/current",
-      "type": "bargauge"
+      "title": "Latencia  Promedio [24 hs ]/weather/current",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -1198,9 +1146,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "continuous-GrYlRd"
-          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -1213,7 +1158,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
@@ -1225,18 +1171,11 @@
       },
       "id": 16,
       "options": {
-        "displayMode": "lcd",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1244,23 +1183,12 @@
           "fields": "",
           "values": false
         },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "12.0.1",
       "targets": [
-        {
-          "disableTextWrap": false,
-          "editorMode": "builder",
-          "expr": "weather_api_request_latency_seconds_count{endpoint=\"/weather/average/week\"}",
-          "fullMetaSearch": false,
-          "includeNullMetadata": true,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A",
-          "useBackend": false
-        },
         {
           "datasource": {
             "type": "prometheus",
@@ -1268,10 +1196,10 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "weather_api_request_latency_seconds_sum{endpoint=\"/weather/average/week\"}",
+          "expr": "avg(rate(weather_api_request_latency_seconds_sum{endpoint=\"/weather/average/week\"}[24h]))",
           "fullMetaSearch": false,
           "hide": false,
-          "includeNullMetadata": true,
+          "includeNullMetadata": false,
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -1279,8 +1207,8 @@
           "useBackend": false
         }
       ],
-      "title": "Latencia  /weather/average/week",
-      "type": "bargauge"
+      "title": "Latencia  promedio [24h] /weather/average/week",
+      "type": "stat"
     }
   ],
   "preload": false,
@@ -1297,5 +1225,5 @@
   "timezone": "",
   "title": "El Tiempo Dashboard",
   "uid": "2e573581-2410-434b-83bc-7a61afbfa429",
-  "version": 55
+  "version": 56
 }
