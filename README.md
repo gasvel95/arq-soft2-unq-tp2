@@ -1,5 +1,97 @@
 # Trabajo práctico final
 
+## Arquitectura
+![Arquitectura](/images/arquitectura.jpg)
+
+![Metricas de Api](/images/arqDocker.png)
+
+## Diagramas de secuencia
+### Caso de uso - Obtener clima actual
+![Caso Current Weather](/images/current.png)
+### Caso de uso - Obtener clima actual (Variante Circuit Breaker)
+![Caso Current Weather - Circuit Breaker](/images/currentCB.png)
+### Caso de uso - Obtener promedio semanal
+![Caso Average Week](/images/avgWeek.png)
+### Caso de uso - Obtener promedio del dia
+![Caso Average Day](/images/diagSecDay.png)
+
+## Endpoints
+### GET /weather/current
+Descripción:
+Devuelve el valor más reciente de temperatura registrado para la ciudad configurada.
+
+Lógica interna:
+El componente weather_metrics realiza un llamado al componente weather_loader.
+Si el dato en MongoDB está desactualizado, weather_loader consulta al API externo y actualiza MongoDB (si está activo).
+Incluye estrategia de circuit breaker y reintentos.
+
+Respuesta Exitosa (200):
+
+```
+{
+  "humidity": 78,
+  "temperature": 17.2,
+  "pressure": 1000,
+  "datetime": "2025-07-02T12:00:00Z"
+}
+```
+Errores:
+
+| Código  | Descripción |
+| ------------- | ------------- |
+| 502  | Falla al comunicarse con loader  |
+| 503  | Circuit Breaker activo  |
+
+### GET /weather/average/day
+Descripción:
+Devuelve el promedio de temperatura registrado en las últimas 24 horas.
+
+Lógica interna:
+
+El componente weather_metrics realiza un llamado al componente weather_loader.
+
+Este accede directamente a MongoDB, busca las entradas de las últimas 24 horas y calcula el promedio.
+
+Respuesta Exitosa (200):
+
+```
+{
+  "average": 16.4
+}
+```
+Errores:
+
+| Código  | Descripción |
+| ------------- | ------------- |
+| 502  | Falla al comunicarse con loader  |
+| 503  | Circuit Breaker activo  |
+| 404  | No hay datos para ese período  |
+
+### GET /weather/average/week
+Descripción:
+Devuelve el promedio de temperatura registrado en los últimos 7 días.
+
+Lógica interna:
+
+El componente weather_metrics realiza un llamado a weather_loader.
+
+Este busca en MongoDB las entradas de los últimos 7 días y calcula el promedio.
+
+Respuesta Exitosa (200):
+
+```
+{
+  "average": 15.7
+}
+```
+Errores:
+
+| Código  | Descripción |
+| ------------- | ------------- |
+| 502  | Falla al comunicarse con loader  |
+| 503  | Circuit Breaker activo  |
+| 404  | No hay datos para ese período  |
+
 
 ## Estrategias de tolerancia a fallos y monitoreo
 
