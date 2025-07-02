@@ -249,7 +249,17 @@ Se genero un Dashboard Gafaga, con las diferentes metricas, con 3 tipos de metri
     * % Error
     * % Ok
 
+![Metricas de Api](/images/gafana_api_metric_latency.png)
 
+* Latencia promedio por api: 
+
+  1. /weather/current
+  2.  /weather/average/day
+  3. /weather/average/week
+
+## Alerta a Slack de Metricas con Gafana 
+
+![Alertas Gafana](/images/Alert_gafana.png)
 
 ## Logs Aggregation -> OpenSearch
 
@@ -369,3 +379,7 @@ En la imagen ejemplo en el json: hits-> total -> value: 13 indica que se dieron 
 Posteriormente podemos ya ver en funcionamiento el Monitor con las alertas generadas hasta el momento actual. 
 
 ![crear Monitor](/images/moni_7.png)
+
+## Visualizacion de Alertas
+
+![Alertas Open Search](/images/Alert_open_dashboard.png)
